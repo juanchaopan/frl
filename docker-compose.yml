@@ -1,0 +1,18 @@
+services:
+  server:
+    container_name: server
+    build: ./server/.devcontainer
+    volumes:
+      - ./server:/app
+    user: vscode
+    working_dir: /app
+    command: sleep infinity
+    networks:
+      - network
+    environment:
+      - MEMORY_FILE=./memory.md
+
+
+networks:
+  network:
+    driver: bridge

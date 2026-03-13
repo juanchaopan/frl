@@ -1,0 +1,18 @@
+[project]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "juanchaopan",email = "p8499@126.com"}
+]
+requires-python = ">=3.11,<4.0.0"
+dependencies = [
+    "black (>=26.3.1,<27.0.0)",
+    "langgraph (>=1.1.2,<2.0.0)",
+    "langchain (>=1.2.12,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
