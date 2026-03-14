@@ -74,14 +74,14 @@ Every conversation document must be initialised as `{"messages": [], "summaries"
   ],
   "summaries": [
     {
-      "toIndex": "int",
+      "toId": "ObjectId",
       "text": "str"
     }
   ]
 }
 ```
 
-`summaries` allows the agent to compress older message history. `toIndex` marks up to which message index (inclusive) a summary covers.
+`summaries` allows the agent to compress older message history. `toId` is the `_id` of the last message the summary covers. Since MongoDB ObjectIds are monotonically increasing, they are compared directly (no array index needed) to determine which messages fall before or after a summary.
 
 ### Testing approach
 

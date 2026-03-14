@@ -2,6 +2,7 @@ from typing import TypedDict
 
 
 class Message(TypedDict):
+    id: str
     role: str
     content: str
 

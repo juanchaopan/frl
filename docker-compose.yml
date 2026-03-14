@@ -19,6 +19,8 @@ services:
       - MONGO_DB=frl
       - MONGO_DB_USERNAME=frl
       - MONGO_DB_PASSWORD=frl_123
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=MedAIBase/PaddleOCR-VL:0.9b
   minio:
     container_name: minio
     image: minio/minio
@@ -56,9 +58,25 @@ services:
       - "27017:27017"
     networks:
       - network
+  ollama:
+    container_name: ollama
+    image: ollama/ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - network
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 1s
+      timeout: 1s
+      retries: 3600
+    runtime: nvidia
 volumes:
   minio_data:
   mongo-data:
+  ollama_data:
 networks:
   network:
     driver: bridge
