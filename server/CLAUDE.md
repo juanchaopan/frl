@@ -56,6 +56,33 @@ The project is a FastAPI server with a LangGraph/LangChain agent layer and MinIO
 | `MINIO_BUCKET` | `s3.upload_stream_to_s3()` |
 | `MEMORY_FILE` | `tools.update_long_term_memory` |
 
+### MongoDB conversation schema
+
+Every conversation document must be initialised as `{"messages": [], "summaries": []}`.
+
+```json
+{
+  "_id": "ObjectId",
+  "messages": [
+    {
+      "_id": "ObjectId",
+      "role": "user | assistant",
+      "content": "str",
+      "images": [{ "url": "str", "description": "str" }],
+      "status": "processed | pending"
+    }
+  ],
+  "summaries": [
+    {
+      "toIndex": "int",
+      "text": "str"
+    }
+  ]
+}
+```
+
+`summaries` allows the agent to compress older message history. `toIndex` marks up to which message index (inclusive) a summary covers.
+
 ### Testing approach
 
 - All S3 and MinIO calls are mocked — no real server needed for unit tests.

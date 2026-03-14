@@ -23,6 +23,7 @@ class ConversationResponse(BaseModel):
 
 class AddMessageRequest(BaseModel):
     message: str
+    image_urls: list[str] = []
 
 
 class ImageUploadResponse(BaseModel):
@@ -32,7 +33,7 @@ class ImageUploadResponse(BaseModel):
 @app.post("/conversations", response_model=ConversationResponse, status_code=201)
 async def create_conversation() -> ConversationResponse:
     try:
-        result = get_conversations().insert_one({"messages": []})
+        result = get_conversations().insert_one({"messages": [], "summaries": []})
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     return ConversationResponse(id=str(result.inserted_id))
@@ -54,7 +55,7 @@ async def add_message(id: str, body: AddMessageRequest) -> AddMessageResponse:
         result = get_conversations().update_one(
             {"_id": oid},
             {"$push": {"messages": {"$each": [
-                {"_id": ObjectId(), "role": "user", "content": body.message, "status": "processed"},
+                {"_id": ObjectId(), "role": "user", "content": body.message, "images": [{"url": url, "description": ""} for url in body.image_urls], "status": "processed"},
                 {"_id": assistant_id, "role": "assistant", "content": "", "status": "pending"},
             ]}}},
         )
