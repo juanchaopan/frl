@@ -5,7 +5,7 @@ from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama
 
-from db import get_conversations
+from db_client import get_conversations
 from state import ConversationState
 
 _agent = None

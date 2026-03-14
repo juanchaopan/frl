@@ -24,6 +24,9 @@ services:
       - OLLAMA_MODEL=llama3.2:3b
       - TIKTOKEN_ENCODING=cl100k_base
       - MAX_CONTEXT_TOKENS=128000
+      - REDIS_URL=redis://:redis_dev_password_123@redis:6379
+      - REDIS_STREAM_TTL=3600000
+      - REDIS_BLOCK_MS=60000
   minio:
     container_name: minio
     image: minio/minio
@@ -76,10 +79,22 @@ services:
       timeout: 1s
       retries: 3600
     runtime: nvidia
+  redis:
+    image: redis:8.4.0
+    container_name: redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "redis_dev_password_123"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - network
 volumes:
   minio_data:
   mongo-data:
   ollama_data:
+  redis-data:
 networks:
   network:
     driver: bridge

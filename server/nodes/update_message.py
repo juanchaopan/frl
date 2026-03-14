@@ -1,6 +1,6 @@
 from bson import ObjectId
 
-from db import get_conversations
+from db_client import get_conversations
 from state import ConversationState
 
 

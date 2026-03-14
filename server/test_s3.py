@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import s3
-from s3 import upload_stream_to_s3
+import s3_client
+from s3_client import upload_stream as upload_stream_to_s3
 
 
 # ---------------------------------------------------------------------------
@@ -23,9 +23,9 @@ MINIO_ENV = {
 @pytest.fixture(autouse=True)
 def reset_singleton():
     """Clear the cached S3 client before every test."""
-    s3._s3_client = None
+    s3_client._client = None
     yield
-    s3._s3_client = None
+    s3_client._client = None
 
 
 @pytest.fixture()
@@ -38,7 +38,7 @@ def minio_env(monkeypatch):
 def mock_s3_client(minio_env):
     """Patch _get_s3_client and return the mock client instance."""
     client = MagicMock()
-    with patch("s3._get_s3_client", return_value=client):
+    with patch("s3_client._get_client", return_value=client):
         yield client
 
 
@@ -70,7 +70,7 @@ class TestMissingEnvVars:
 
 class TestClientConstruction:
     def test_client_created_with_correct_args(self, minio_env):
-        with patch("s3.boto3.client") as mock_ctor:
+        with patch("s3_client.boto3.client") as mock_ctor:
             mock_ctor.return_value = MagicMock()
             upload_stream_to_s3(io.BytesIO(b"x"), "text/plain", key="k.txt")
 
@@ -82,7 +82,7 @@ class TestClientConstruction:
         assert kwargs["config"].signature_version == "s3v4"
 
     def test_client_created_only_once_across_calls(self, minio_env):
-        with patch("s3.boto3.client") as mock_ctor:
+        with patch("s3_client.boto3.client") as mock_ctor:
             mock_ctor.return_value = MagicMock()
             upload_stream_to_s3(io.BytesIO(b"a"), "text/plain", key="a.txt")
             upload_stream_to_s3(io.BytesIO(b"b"), "text/plain", key="b.txt")
@@ -127,7 +127,7 @@ class TestAutoKey:
 
     def test_generated_key_contains_uuid(self, mock_s3_client):
         fixed_uuid = uuid.UUID("12345678-1234-5678-1234-567812345678")
-        with patch("s3.uuid.uuid4", return_value=fixed_uuid):
+        with patch("s3_client.uuid.uuid4", return_value=fixed_uuid):
             upload_stream_to_s3(io.BytesIO(b"data"), "image/png")
 
         used_key = mock_s3_client.upload_fileobj.call_args[0][2]
@@ -141,7 +141,7 @@ class TestAutoKey:
 
     def test_generated_key_has_no_extension_for_unknown_mime(self, mock_s3_client):
         fixed_uuid = uuid.UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
-        with patch("s3.uuid.uuid4", return_value=fixed_uuid):
+        with patch("s3_client.uuid.uuid4", return_value=fixed_uuid):
             upload_stream_to_s3(io.BytesIO(b"data"), "application/x-unknown-type")
 
         used_key = mock_s3_client.upload_fileobj.call_args[0][2]

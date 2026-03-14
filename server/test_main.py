@@ -25,18 +25,18 @@ def post_image(content: bytes, content_type: str):
 class TestUploadSuccess:
     @pytest.mark.parametrize("content_type", sorted(ALLOWED_CONTENT_TYPES))
     def test_returns_201_for_allowed_types(self, content_type):
-        with patch("main.upload_stream_to_s3", return_value=FAKE_URL):
+        with patch("main.upload_stream", return_value=FAKE_URL):
             response = post_image(b"data", content_type)
         assert response.status_code == 201
 
     @pytest.mark.parametrize("content_type", sorted(ALLOWED_CONTENT_TYPES))
     def test_returns_url_for_allowed_types(self, content_type):
-        with patch("main.upload_stream_to_s3", return_value=FAKE_URL):
+        with patch("main.upload_stream", return_value=FAKE_URL):
             response = post_image(b"data", content_type)
         assert response.json() == {"url": FAKE_URL}
 
     def test_stream_passed_to_upload(self):
-        with patch("main.upload_stream_to_s3", return_value=FAKE_URL) as mock_upload:
+        with patch("main.upload_stream", return_value=FAKE_URL) as mock_upload:
             post_image(b"hello", "image/png")
         mock_upload.assert_called_once()
         _, call_content_type = mock_upload.call_args[0]
@@ -63,7 +63,7 @@ class TestUnsupportedMediaType:
         assert "application/pdf" in response.json()["detail"]
 
     def test_upload_not_called_for_disallowed_type(self):
-        with patch("main.upload_stream_to_s3") as mock_upload:
+        with patch("main.upload_stream") as mock_upload:
             post_image(b"data", "text/plain")
         mock_upload.assert_not_called()
 
@@ -84,11 +84,11 @@ class TestMissingFile:
 
 class TestUploadError:
     def test_returns_500_on_value_error(self):
-        with patch("main.upload_stream_to_s3", side_effect=ValueError("MINIO_BUCKET not set")):
+        with patch("main.upload_stream", side_effect=ValueError("MINIO_BUCKET not set")):
             response = post_image(b"data", "image/png")
         assert response.status_code == 500
 
     def test_error_detail_contains_message(self):
-        with patch("main.upload_stream_to_s3", side_effect=ValueError("MINIO_BUCKET not set")):
+        with patch("main.upload_stream", side_effect=ValueError("MINIO_BUCKET not set")):
             response = post_image(b"data", "image/png")
         assert "MINIO_BUCKET not set" in response.json()["detail"]

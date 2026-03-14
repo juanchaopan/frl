@@ -6,12 +6,12 @@ from typing import BinaryIO
 import boto3
 from botocore.client import Config
 
-_s3_client = None
+_client = None
 
 
-def _get_s3_client():
-    global _s3_client
-    if _s3_client is None:
+def _get_client():
+    global _client
+    if _client is None:
         endpoint = os.environ.get("MINIO_ENDPOINT")
         access_key = os.environ.get("MINIO_ACCESS_KEY")
         secret_key = os.environ.get("MINIO_SECRET_KEY")
@@ -24,17 +24,17 @@ def _get_s3_client():
         if missing:
             raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
 
-        _s3_client = boto3.client(
+        _client = boto3.client(
             "s3",
             endpoint_url=endpoint,
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             config=Config(signature_version="s3v4"),
         )
-    return _s3_client
+    return _client
 
 
-def upload_stream_to_s3(
+def upload_stream(
     stream: BinaryIO,
     content_type: str,
     key: str | None = None,
@@ -69,7 +69,7 @@ def upload_stream_to_s3(
         key = f"{uuid.uuid4()}{ext}"
 
     endpoint = os.environ.get("MINIO_ENDPOINT", "")
-    _get_s3_client().upload_fileobj(
+    _get_client().upload_fileobj(
         stream,
         bucket,
         key,
