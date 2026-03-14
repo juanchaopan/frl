@@ -14,6 +14,7 @@ class Request(TypedDict):
 
 class ConversationState(TypedDict):
     conversation_id: str
+    message_id: str
     long_term_memory: str
     message_history: list[Message]
     request: Request
