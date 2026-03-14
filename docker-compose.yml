@@ -20,7 +20,8 @@ services:
       - MONGO_DB_USERNAME=frl
       - MONGO_DB_PASSWORD=frl_123
       - OLLAMA_URL=http://ollama:11434
-      - OLLAMA_MODEL=MedAIBase/PaddleOCR-VL:0.9b
+      - OLLAMA_OCR_MODEL=MedAIBase/PaddleOCR-VL:0.9b
+      - OLLAMA_MODEL=llama3.2:3b
   minio:
     container_name: minio
     image: minio/minio

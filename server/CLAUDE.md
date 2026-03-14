@@ -55,6 +55,9 @@ The project is a FastAPI server with a LangGraph/LangChain agent layer and MinIO
 | `MINIO_SECRET_KEY` | `s3._get_s3_client()` |
 | `MINIO_BUCKET` | `s3.upload_stream_to_s3()` |
 | `MEMORY_FILE` | `tools.update_long_term_memory` |
+| `OLLAMA_URL` | `nodes._get_ollama_client()` |
+| `OLLAMA_MODEL` | `nodes.summarize_message_history`, `nodes.generate_response` |
+| `OLLAMA_OCR_MODEL` | `nodes.describe_images` (vision/OCR model e.g. llava) |
 
 ### MongoDB conversation schema
 

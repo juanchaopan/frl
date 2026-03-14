@@ -19,4 +19,5 @@ class ConversationState(TypedDict):
     long_term_memory: str
     message_history: list[Message]
     request: Request
+    prompt: list[dict]
     response: str
