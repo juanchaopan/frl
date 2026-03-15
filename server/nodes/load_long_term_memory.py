@@ -10,4 +10,4 @@ def load_long_term_memory(state: ConversationState) -> ConversationState:
             content = f.read()
     else:
         content = ""
-    return {**state, "long_term_memory": content}
+    return {"long_term_memory": content}

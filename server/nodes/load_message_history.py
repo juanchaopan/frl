@@ -10,7 +10,7 @@ def load_message_history(state: ConversationState) -> ConversationState:
         {"messages": 1, "summaries": 1},
     )
     if conversation is None:
-        return {**state, "message_history": []}
+        return {"message_history": []}
 
     messages = conversation.get("messages", [])
     summaries = conversation.get("summaries", [])
@@ -26,4 +26,4 @@ def load_message_history(state: ConversationState) -> ConversationState:
         if (start_id is None or m["_id"] > start_id) and m["_id"] < message_oid
     ]
 
-    return {**state, "message_history": history}
+    return {"message_history": history}

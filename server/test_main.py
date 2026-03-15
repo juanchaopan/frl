@@ -8,7 +8,7 @@ from main import app, ALLOWED_CONTENT_TYPES
 
 client = TestClient(app)
 
-FAKE_URL = "http://localhost:9000/test-bucket/some-uuid.png"
+FAKE_KEY = "some-uuid.png"
 
 
 def post_image(content: bytes, content_type: str):
@@ -25,18 +25,18 @@ def post_image(content: bytes, content_type: str):
 class TestUploadSuccess:
     @pytest.mark.parametrize("content_type", sorted(ALLOWED_CONTENT_TYPES))
     def test_returns_201_for_allowed_types(self, content_type):
-        with patch("main.upload_stream", return_value=FAKE_URL):
+        with patch("main.upload_stream", return_value=FAKE_KEY):
             response = post_image(b"data", content_type)
         assert response.status_code == 201
 
     @pytest.mark.parametrize("content_type", sorted(ALLOWED_CONTENT_TYPES))
-    def test_returns_url_for_allowed_types(self, content_type):
-        with patch("main.upload_stream", return_value=FAKE_URL):
+    def test_returns_key_for_allowed_types(self, content_type):
+        with patch("main.upload_stream", return_value=FAKE_KEY):
             response = post_image(b"data", content_type)
-        assert response.json() == {"url": FAKE_URL}
+        assert response.json() == {"key": FAKE_KEY}
 
     def test_stream_passed_to_upload(self):
-        with patch("main.upload_stream", return_value=FAKE_URL) as mock_upload:
+        with patch("main.upload_stream", return_value=FAKE_KEY) as mock_upload:
             post_image(b"hello", "image/png")
         mock_upload.assert_called_once()
         _, call_content_type = mock_upload.call_args[0]

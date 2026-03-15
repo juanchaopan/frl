@@ -1,11 +1,11 @@
 import base64
 import os
 
-import httpx
 from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 
+from s3_client import _get_client as _get_s3_client
 from state import ConversationState
 
 _agent = None
@@ -25,11 +25,15 @@ def _get_agent():
 def describe_images(state: ConversationState) -> ConversationState:
     descriptions: list[str] = []
 
-    for url in state["request"]["image_urls"]:
-        response = httpx.get(url)
-        response.raise_for_status()
-        mime = response.headers.get("content-type", "image/jpeg").split(";")[0]
-        b64 = base64.b64encode(response.content).decode()
+    bucket = os.environ.get("MINIO_BUCKET")
+    if not bucket:
+        raise ValueError("Missing required environment variable: MINIO_BUCKET")
+
+    for key in state["request"]["image_keys"]:
+        obj = _get_s3_client().get_object(Bucket=bucket, Key=key)
+        content = obj["Body"].read()
+        mime = obj.get("ContentType", "image/jpeg").split(";")[0]
+        b64 = base64.b64encode(content).decode()
 
         result = _get_agent().invoke({"messages": [
             HumanMessage(content=[
@@ -39,4 +43,4 @@ def describe_images(state: ConversationState) -> ConversationState:
         ]})
         descriptions.append(result["messages"][-1].content)
 
-    return {**state, "request": {**state["request"], "image_descriptions": descriptions}}
+    return {"request": {**state["request"], "image_descriptions": descriptions}}

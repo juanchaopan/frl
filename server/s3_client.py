@@ -39,7 +39,7 @@ def upload_stream(
     content_type: str,
     key: str | None = None,
 ) -> str:
-    """Upload a binary stream to a MinIO bucket and return its URL.
+    """Upload a binary stream to a MinIO bucket and return its key.
 
     Env vars:
         MINIO_ENDPOINT   - MinIO server URL, e.g. "http://localhost:9000" (required)
@@ -53,7 +53,7 @@ def upload_stream(
         key:          Object key. A random UUID-based key is generated when omitted.
 
     Returns:
-        URL of the uploaded object (<endpoint>/<bucket>/<key>).
+        Key of the uploaded object.
 
     Raises:
         ValueError: If any required env var is missing.
@@ -68,7 +68,6 @@ def upload_stream(
         ext = mimetypes.guess_extension(mime_base) or ""
         key = f"{uuid.uuid4()}{ext}"
 
-    endpoint = os.environ.get("MINIO_ENDPOINT", "")
     _get_client().upload_fileobj(
         stream,
         bucket,
@@ -76,4 +75,4 @@ def upload_stream(
         ExtraArgs={"ContentType": content_type},
     )
 
-    return f"{endpoint.rstrip('/')}/{bucket}/{key}"
+    return key

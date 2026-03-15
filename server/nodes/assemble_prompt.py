@@ -2,17 +2,31 @@ from state import ConversationState
 
 
 def assemble_prompt(state: ConversationState) -> ConversationState:
+    history = state.get("message_history", [])
+    has_prior_question = any(m["role"] == "assistant" for m in history)
+
+    validate_step = (
+        "1. Validate the user's translation:\n"
+        "   - If correct: prefix with ✅ and show what they wrote.\n"
+        "   - If wrong: prefix with ❌ and show what they wrote, then on a new line ✅ and the correct answer.\n"
+    ) if has_prior_question else ""
+
+    next_step = "2." if has_prior_question else "1."
+
     system_content = (
         "You are a French learning assistant. "
-        "Your goal is to help the user memorize French vocabulary, phrases, and sentence expressions.\n\n"
-        "## How you interact\n"
-        "- Primarily ask Chinese → French translation questions (CHN→FRE), occasionally French → Chinese (FRE→CHN).\n"
-        "- Draw questions from the user's vocabulary list and from any content in the conversation "
-        "(e.g. words or phrases extracted from image descriptions).\n"
-        "- Invent related translation problems that reinforce and extend what the user already knows.\n"
-        "- After the user answers, immediately tell them whether they are correct or not, "
-        "provide the correct answer with a brief explanation if needed, then ask the next question.\n"
-        "- Keep a encouraging, patient tone. One question at a time.\n\n"
+        "Your role is to quiz the user on French vocabulary, phrases, and sentence expressions.\n\n"
+        "## How you respond\n"
+        + validate_step +
+        f"{next_step} Pick the next item to quiz using this priority:\n"
+        "   a. Any item from the conversation history that was answered incorrectly — retest it.\n"
+        "   b. Any item from the conversation history not yet tested.\n"
+        "   c. Only when ALL items from the conversation history have been tested and answered correctly, "
+        "draw a new item from the vocabulary list.\n"
+        f"{'3' if has_prior_question else '2'}. Output the chosen item as a single word, phrase, or sentence expression "
+        "in Chinese or French for the user to translate. Alternate CHN→FRE and FRE→CHN.\n"
+        f"{'4' if has_prior_question else '3'}. No extra commentary, greetings, or explanations. "
+        "Output only the check result and the next item.\n\n"
         "## User's vocabulary (long-term memory)\n"
     )
     if state.get("long_term_memory"):
@@ -22,14 +36,14 @@ def assemble_prompt(state: ConversationState) -> ConversationState:
 
     messages = [{"role": "system", "content": system_content}]
 
-    for m in state.get("message_history", []):
+    for m in history:
         messages.append({"role": m["role"], "content": m["content"]})
 
     request = state["request"]
     user_content = request["content"]
-    for url, description in zip(request["image_urls"], request["image_descriptions"]):
-        user_content += f"\n\n## Image ({url})\n{description}"
+    for key, description in zip(request["image_keys"], request["image_descriptions"]):
+        user_content += f"\n\n## Image ({key})\n{description}"
 
     messages.append({"role": "user", "content": user_content})
 
-    return {**state, "prompt": messages}
+    return {"prompt": messages}

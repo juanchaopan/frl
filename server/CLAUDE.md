@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 poetry install
 .venv/bin/pytest -v                                      # all tests
 .venv/bin/pytest test_main.py::ClassName::test_name -v   # single test
-.venv/bin/uvicorn main:app --reload                      # dev server
+.venv/bin/uvicorn main:app --host 0.0.0.0 --reload       # dev server
 ```
 
 ## Project overview
@@ -22,11 +22,11 @@ A French-language learning assistant. Users send messages (text + images); the s
 | `POST` | `/conversations` | Create empty conversation |
 | `POST` | `/conversations/{id}/messages` | Add user message → returns `assistant_message_id`, triggers graph |
 | `GET` | `/conversations/{id}/messages?from_message_id=` | SSE stream of messages from given ID |
-| `POST` | `/images` | Upload image to MinIO → returns URL |
+| `POST` | `/images` | Upload image to MinIO → returns key |
 
 ### `POST /conversations/{id}/messages` request
 ```json
-{ "message": "str", "image_urls": ["url", ...] }
+{ "message": "str", "image_keys": ["key", ...] }
 ```
 
 ### `GET /conversations/{id}/messages` SSE format
@@ -79,7 +79,7 @@ All external clients (`boto3`, `MongoClient`, `Redis`, `ChatOllama` agents) are 
     "_id": "ObjectId",
     "role": "user | assistant",
     "content": "str",
-    "images": [{ "url": "str", "description": "str" }],
+    "images": [{ "key": "str", "description": "str" }],
     "status": "processed | pending"
   }],
   "summaries": [{
@@ -108,8 +108,9 @@ Three `##` sections: `Words`, `Phrases`, `Sentence Expressions`. Tool `append_lo
 
 | Variable | Used by |
 |---|---|
-| `MONGODB_URI` | `db_client` |
+| `MONGO_URI` | `db_client` |
 | `MONGO_DB` | `db_client` |
+| `MONGO_AUTH_SOURCE` | `db_client` — auth database (defaults to `MONGO_DB`, then `admin`) |
 | `MONGO_DB_USERNAME` | `db_client` |
 | `MONGO_DB_PASSWORD` | `db_client` |
 | `MINIO_ENDPOINT` | `s3_client` |

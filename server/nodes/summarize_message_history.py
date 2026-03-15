@@ -24,7 +24,7 @@ def _get_agent():
 
 def summarize_message_history(state: ConversationState) -> ConversationState:
     if not state["message_history"]:
-        return state
+        return {}
 
     history_text = "\n".join(
         f"{m['role'].upper()}: {m['content']}"
@@ -51,4 +51,4 @@ def summarize_message_history(state: ConversationState) -> ConversationState:
             {"$push": {"summaries": {"toId": to_id, "text": summary_text}}},
         )
 
-    return state
+    return {}

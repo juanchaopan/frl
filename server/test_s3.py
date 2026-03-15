@@ -161,20 +161,14 @@ class TestAutoKey:
 
 
 # ---------------------------------------------------------------------------
-# Return URL
+# Return key
 # ---------------------------------------------------------------------------
 
-class TestReturnUrl:
-    def test_url_format(self, mock_s3_client):
-        url = upload_stream_to_s3(io.BytesIO(b"x"), "text/plain", key="doc.txt")
-        assert url == "http://localhost:9000/test-bucket/doc.txt"
+class TestReturnKey:
+    def test_explicit_key_is_returned(self, mock_s3_client):
+        key = upload_stream_to_s3(io.BytesIO(b"x"), "text/plain", key="doc.txt")
+        assert key == "doc.txt"
 
-    def test_trailing_slash_on_endpoint_normalised(self, monkeypatch, mock_s3_client):
-        monkeypatch.setenv("MINIO_ENDPOINT", "http://localhost:9000/")
-        url = upload_stream_to_s3(io.BytesIO(b"x"), "text/plain", key="doc.txt")
-        assert url == "http://localhost:9000/test-bucket/doc.txt"
-
-    def test_url_contains_bucket_and_key(self, mock_s3_client):
-        url = upload_stream_to_s3(io.BytesIO(b"x"), "image/png", key="imgs/cat.png")
-        assert "test-bucket" in url
-        assert "imgs/cat.png" in url
+    def test_path_key_returned_unchanged(self, mock_s3_client):
+        key = upload_stream_to_s3(io.BytesIO(b"x"), "image/png", key="imgs/cat.png")
+        assert key == "imgs/cat.png"

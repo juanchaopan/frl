@@ -27,8 +27,8 @@ def _get_agent():
 def maintain_long_term_memory(state: ConversationState) -> ConversationState:
     request = state["request"]
     user_content = request["content"]
-    for url, description in zip(request["image_urls"], request["image_descriptions"]):
-        user_content += f"\n\n## Image ({url})\n{description}"
+    for key, description in zip(request["image_keys"], request["image_descriptions"]):
+        user_content += f"\n\n## Image ({key})\n{description}"
 
     long_term_memory = state.get("long_term_memory") or "(empty)"
 
@@ -47,4 +47,4 @@ def maintain_long_term_memory(state: ConversationState) -> ConversationState:
         HumanMessage(content=user_content),
     ]})
 
-    return state
+    return {}

@@ -9,4 +9,4 @@ def update_message(state: ConversationState) -> ConversationState:
         {"_id": ObjectId(state["conversation_id"]), "messages._id": ObjectId(state["message_id"])},
         {"$set": {"messages.$.content": state["response"], "messages.$.status": "processed"}},
     )
-    return state
+    return {}

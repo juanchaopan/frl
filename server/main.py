@@ -3,6 +3,7 @@ import json
 import os
 from collections.abc import AsyncIterator
 
+from botocore.exceptions import BotoCoreError, ClientError
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import FastAPI, HTTPException, Query, UploadFile
@@ -32,7 +33,7 @@ class ConversationResponse(BaseModel):
 
 class AddMessageRequest(BaseModel):
     message: str
-    image_urls: list[str] = []
+    image_keys: list[str] = []
 
 
 class AddMessageResponse(BaseModel):
@@ -40,10 +41,10 @@ class AddMessageResponse(BaseModel):
 
 
 class ImageUploadResponse(BaseModel):
-    url: str
+    key: str
 
 
-async def _run_graph(conversation_id: str, message_id: str, image_urls: list[str], message: str) -> None:
+async def _run_graph(conversation_id: str, message_id: str, image_keys: list[str], message: str) -> None:
     stream_key = f"stream:{message_id}"
     redis = await get_redis()
     try:
@@ -52,7 +53,7 @@ async def _run_graph(conversation_id: str, message_id: str, image_urls: list[str
             "message_id": message_id,
             "request": {
                 "content": message,
-                "image_urls": image_urls,
+                "image_keys": image_keys,
                 "image_descriptions": [],
             },
         }
@@ -86,7 +87,7 @@ async def add_message(id: str, body: AddMessageRequest) -> AddMessageResponse:
         result = get_conversations().update_one(
             {"_id": oid},
             {"$push": {"messages": {"$each": [
-                {"_id": ObjectId(), "role": "user", "content": body.message, "images": [{"url": url, "description": ""} for url in body.image_urls], "status": "processed"},
+                {"_id": ObjectId(), "role": "user", "content": body.message, "images": [{"key": key, "description": ""} for key in body.image_keys], "status": "processed"},
                 {"_id": assistant_id, "role": "assistant", "content": "", "status": "pending"},
             ]}}},
         )
@@ -105,7 +106,7 @@ async def add_message(id: str, body: AddMessageRequest) -> AddMessageResponse:
     await redis.xadd(stream_key, {"type": "start"})
     await redis.expire(stream_key, int(ttl))
 
-    asyncio.create_task(_run_graph(id, str(assistant_id), body.image_urls, body.message))
+    asyncio.create_task(_run_graph(id, str(assistant_id), body.image_keys, body.message))
 
     return AddMessageResponse(assistant_message_id=str(assistant_id))
 
@@ -195,8 +196,8 @@ async def upload_image(file: UploadFile) -> ImageUploadResponse:
         )
 
     try:
-        url = upload_stream(file.file, file.content_type)
+        key = upload_stream(file.file, file.content_type)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return ImageUploadResponse(url=url)
+    return ImageUploadResponse(key=key)

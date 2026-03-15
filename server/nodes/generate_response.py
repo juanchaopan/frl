@@ -21,4 +21,4 @@ def _get_agent():
 
 def generate_response(state: ConversationState) -> ConversationState:
     result = _get_agent().invoke({"messages": state["prompt"]})
-    return {**state, "response": result["messages"][-1].content}
+    return {"response": result["messages"][-1].content}

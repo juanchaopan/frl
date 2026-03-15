@@ -11,7 +11,8 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-python.black-formatter",
-				"njpwerner.autodocstring"
+				"njpwerner.autodocstring",
+				"mongodb.mongodb-vscode"
 			]
 		}
 	},

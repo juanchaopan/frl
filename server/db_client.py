@@ -9,15 +9,16 @@ _client: MongoClient | None = None
 def _get_client() -> MongoClient:
     global _client
     if _client is None:
-        missing = [k for k in ("MONGODB_URI", "MONGO_DB_USERNAME", "MONGO_DB_PASSWORD")
+        missing = [k for k in ("MONGO_URI", "MONGO_DB_USERNAME", "MONGO_DB_PASSWORD")
                    if not os.environ.get(k)]
         if missing:
             raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
 
         _client = MongoClient(
-            os.environ["MONGODB_URI"],
+            os.environ["MONGO_URI"],
             username=os.environ["MONGO_DB_USERNAME"],
             password=os.environ["MONGO_DB_PASSWORD"],
+            authSource=os.environ.get("MONGO_AUTH_SOURCE", os.environ.get("MONGO_DB", "admin")),
         )
     return _client
 

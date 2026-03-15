@@ -9,7 +9,7 @@ class Message(TypedDict):
 
 class Request(TypedDict):
     content: str
-    image_urls: list[str]
+    image_keys: list[str]
     image_descriptions: list[str]
 
 

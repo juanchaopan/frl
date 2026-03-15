@@ -7,6 +7,8 @@ services:
     user: vscode
     working_dir: /app
     command: sleep infinity
+    ports:
+      - "8000:8000"
     networks:
       - network
     environment:
@@ -15,7 +17,8 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=frl
-      - MONGODB_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_AUTH_SOURCE=frl
       - MONGO_DB=frl
       - MONGO_DB_USERNAME=frl
       - MONGO_DB_PASSWORD=frl_123
@@ -33,6 +36,8 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
+    networks:
+      - network
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -79,6 +84,21 @@ services:
       timeout: 1s
       retries: 3600
     runtime: nvidia
+  ollama-init:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama list | grep -q "llama3.2:3b" || ollama pull llama3.2:3b
+        ollama list | grep -q "PaddleOCR-VL:0.9b" || ollama pull MedAIBase/PaddleOCR-VL:0.9b
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    networks:
+      - network
+    restart: "no"
   redis:
     image: redis:8.4.0
     container_name: redis
